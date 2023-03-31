@@ -18,10 +18,13 @@
 
 package com.pugzarecute.argonix;
 
-import com.pugzarecute.argonix.hanlders.Injectable;
+import com.pugzarecute.argonix.hanlders.CiInjectable;
+import com.pugzarecute.argonix.hanlders.DefaultInjectable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 public class ServerManager {
     void init(){
@@ -36,10 +39,19 @@ public class ServerManager {
         connector.setPort(9191);
         connector.setAcceptQueueSize(128);
 
-        Injectable staticHandler = new Injectable();
+        ContextHandlerCollection contextHandlerCollection = new ContextHandlerCollection();
+        server.setHandler(contextHandlerCollection);
+
+        ContextHandler rootHandler = new ContextHandler("/");
+        rootHandler.setHandler(new DefaultInjectable());
+        contextHandlerCollection.addHandler(rootHandler);
+
+        ContextHandler projectHandler = new ContextHandler("/projects");
+        projectHandler.setHandler(new CiInjectable());
+        contextHandlerCollection.addHandler(projectHandler);
 
         server.addConnector(connector);
-        server.setHandler(staticHandler);
+
         try {
             server.start();
             logger.info("Server started!");

@@ -31,9 +31,11 @@ import java.util.Objects;
 
 import java.io.File;
 
-public class Injectable extends Abstract{
+public class DefaultInjectable extends Abstract{
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        response.getHeaders().add("X-Powered-By","Argonix(Jetty://)");
+        response.getHeaders().add("Server","Argonix(Jetty://)");
         String context = Request.getPathInContext(request).substring(1);
         assert Init.WEBAPP_PATH != null;
         String file2load =  Init.WEBAPP_PATH.getFile();
