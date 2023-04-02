@@ -24,6 +24,7 @@ import org.apache.logging.log4j.*;
 import java.net.URL;
 
 public class Init {
+    public static final String BASE = "https://argon.pugzarecute.com/";
     public static final URL WEBAPP_PATH = Init.class.getResource("../../../webapp/");
     public static void main(String[] args) {
         Logger logger = LogManager.getLogger("Main");

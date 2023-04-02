@@ -21,6 +21,7 @@ package com.pugzarecute.argonix.hanlders;
 import com.google.gson.Gson;
 import com.pugzarecute.argonix.Init;
 import com.pugzarecute.argonix.json.JenkinsMain;
+import com.pugzarecute.argonix.json.JenkinsProject;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler.Abstract;
 import org.eclipse.jetty.server.Request;
@@ -34,9 +35,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+
 public class CiInjectable extends Abstract{
     // Use -Djava.net.preferIPv6Addresses=true to use ipv6 over v4
     public static final String REMOTE_URL ="https://argon.pugzarecute.com/ci/api/json";
+    public static final String API_ENDPOINT = "/api/json";
+
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
@@ -54,12 +58,18 @@ public class CiInjectable extends Abstract{
         System.out.println(file2load);
 
         File file = new File(file2load);
+        Gson gson = new Gson();
+        JenkinsMain projects = gson.fromJson(new InputStreamReader(new URL(REMOTE_URL).openStream()), JenkinsMain.class);
 
         if(!file.exists()){
-            response.setStatus(404);
-
-            Content.Sink.write(response,true,"404",callback);
-            return false;
+            for (JenkinsProject proj:
+                    projects.getJobs()) {
+                if(proj.getName().equalsIgnoreCase(context)){
+                    System.out.println("Valid project");
+                    break;
+                }
+            }
+            return true;
         }
         StringBuilder content= new StringBuilder();
         for (String s:
@@ -75,12 +85,12 @@ public class CiInjectable extends Abstract{
         for(String x:Files.readAllLines(Path.of(Init.WEBAPP_PATH.getFile() + "util/ci_project.html"))){
             projectEntry.append(x);
         }
-        Gson gson = new Gson();
-        JenkinsMain projects = gson.fromJson(new InputStreamReader(new URL(REMOTE_URL).openStream()), JenkinsMain.class);
+
+
         int i = 0;
         StringBuilder content2Add=new StringBuilder();
         while (i < projects.getJobs().size()){
-            content2Add.append(projectEntry.toString().replaceAll("<argonix[.]injector[.]project[.]title>",projects.getJobs().get(i).getName()).replaceAll("<argonix[.]injector[.]project[.]href>",projects.getJobs().get(i).getUrl()));
+            content2Add.append(projectEntry.toString().replaceAll("<argonix[.]injector[.]project[.]title>",projects.getJobs().get(i).getName()).replaceAll("<argonix[.]injector[.]project[.]href>",Init.BASE+"projects/"+projects.getJobs().get(i).getName()));
             i++;
         }
 
